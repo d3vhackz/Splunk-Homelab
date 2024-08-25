@@ -72,31 +72,28 @@ The architecture diagram above illustrates the setup for the Splunk + Sysmon Det
 This setup allows you to simulate and detect various attack techniques using a real-world-like environment. By using Sysmon and the Splunk Universal Forwarder, the system continuously monitors and forwards detailed logs to Splunk, where they can be analyzed against attack frameworks like MITRE ATT&CK.
 
 ## Usage Examples
-Usage Examples
 Here are some ways you can use this project:
 
-Detecting Malicious PowerShell Execution
+1. Detecting Malicious PowerShell Execution
+- After simulating an attack using Atomic Red Team, you can query Splunk with:
 
-After simulating an attack using Atomic Red Team, you can query Splunk with:
-splunk
-Copy code
-index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image="*powershell.exe"
-This will return logs where PowerShell was executed, allowing you to see potential malicious activity.
-Mapping Detections to MITRE ATT&CK
+```index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image="*powershell.exe"```
 
-Once detections are logged in Splunk, you can map these events to MITRE ATT&CK techniques:
-splunk
-Copy code
-| inputlookup attack_techniques.csv | search event_id=1
-This helps to identify which specific techniques were used during the attack.
-Simulating and Detecting Credential Dumping
+- This will return logs where PowerShell was executed, allowing you to see potential malicious activity.
 
-Using the Invoke-Mimikatz command in Kali Linux, you can simulate credential dumping:
-bash
-Copy code
-Invoke-Mimikatz -DumpCred
-Query Splunk for Sysmon Event ID 10:
-splunk
-Copy code
-index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=10
+2. Mapping Detections to MITRE ATT&CK
+- Once detections are logged in Splunk, you can map these events to MITRE ATT&CK techniques:
+
+```| inputlookup attack_techniques.csv | search event_id=1```
+
+- This helps to identify which specific techniques were used during the attack.
+
+3. Simulating and Detecting Credential Dumping
+- Using the Invoke-Mimikatz command in Kali Linux, you can simulate credential dumping:
+```Invoke-Mimikatz -DumpCred```
+
+- Query Splunk for Sysmon Event ID 10:
+
+```index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=10```
+
 This will show any instances where Mimikatz was detected attempting to dump credentials.
