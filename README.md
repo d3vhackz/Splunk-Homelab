@@ -74,21 +74,21 @@ This setup allows you to simulate and detect various attack techniques using a r
 ## Usage Examples
 Here are some ways you can use this project:
 
-1. Detecting Malicious PowerShell Execution
+- Detecting Malicious PowerShell Execution
  - After simulating an attack using Atomic Red Team, you can query Splunk with:
 
 ```index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image="*powershell.exe"```
 
 - This will return logs where PowerShell was executed, allowing you to see potential malicious activity.
 
-2. Mapping Detections to MITRE ATT&CK
+- Mapping Detections to MITRE ATT&CK
  - Once detections are logged in Splunk, you can map these events to MITRE ATT&CK techniques:
 
 ```| inputlookup attack_techniques.csv | search event_id=1```
 
  - This helps to identify which specific techniques were used during the attack.
 
-3. Simulating and Detecting Credential Dumping
+- Simulating and Detecting Credential Dumping
  - Using the Invoke-Mimikatz command in Kali Linux, you can simulate credential dumping:
 ```Invoke-Mimikatz -DumpCred```
 
