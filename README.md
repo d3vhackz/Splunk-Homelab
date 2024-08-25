@@ -75,14 +75,14 @@ This setup allows you to simulate and detect various attack techniques using a r
 Here are some ways you can use this project:
 
 - Detecting Malicious PowerShell Execution
- - After simulating an attack using Atomic Red Team, you can query Splunk with:
+  - After simulating an attack using Atomic Red Team, you can query Splunk with:
 
 ```index=main sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=1 Image="*powershell.exe"```
 
-- This will return logs where PowerShell was executed, allowing you to see potential malicious activity.
+  - This will return logs where PowerShell was executed, allowing you to see potential malicious activity.
 
 - Mapping Detections to MITRE ATT&CK
- - Once detections are logged in Splunk, you can map these events to MITRE ATT&CK techniques:
+  - Once detections are logged in Splunk, you can map these events to MITRE ATT&CK techniques:
 
 ```| inputlookup attack_techniques.csv | search event_id=1```
 
