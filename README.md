@@ -1,7 +1,5 @@
 # Splunk + Sysmon SIEM Detection Project
 
-For a step-by-step instruction with screenshots, [click here](https://www.notion.so/Splunk-Sysmon-SIEM-Detection-Project-651363ee990947a6bf5d6c9be7176302).
-
 ## Introduction
 
 This project is going to be the ground layer for a good homelab. At the time I'm writing this, my homelab environment will consist of one Windows 10 machine (as the target machine), one Server 2022 machine (as the Active Directory Domain Controller), one Kali Linux machine (as the attacking machine), and one Ubuntu Linux machine (as the Splunk server). All machines will be configured on the same network and subnet, but with different IPs.
