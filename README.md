@@ -1,6 +1,6 @@
-# My Splunk + Sysmon Detection Lab
+# My Splunk + Active Directory Detection Lab
 
-This repository contains all the configurations and documentation for a comprehensive security information and event management (SIEM) lab I built. The environment is centered around a full Microsoft Active Directory domain, enabling the simulation and detection of realistic adversary techniques.
+This repository contains all configurations and documentation for a comprehensive security information and event management (SIEM) lab I built. The environment is centered around a full Microsoft Active Directory domain, enabling the simulation and detection of realistic adversary techniques.
 
 This project is documented to serve as a portfolio piece and a detailed blueprint for anyone looking to build their own hands-on detection lab.
 
@@ -46,6 +46,6 @@ Here is a quick look at some of the threats this lab can detect. The full tutori
 
 ## 📁 Repository Contents
 
-*   **/docs/**: Contains the full, illustrated step-by-step tutorial and all image assets.
+*   **/docs/**: Contains the full, illustrated step-by-step tutorial and all 67 curated image assets.
 *   **/configs/**: Contains the configuration files needed for the Splunk Universal Forwarder.
 *   `README.md`: This file, providing a high-level overview of the project.
