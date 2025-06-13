@@ -1,132 +1,49 @@
-# My Splunk + Sysmon SIEM Lab: Illustrated Step-by-Step Guide
+# My Splunk + Sysmon SIEM Detection Lab
 
-This document details the complete process I followed to build my SIEM detection lab, with screenshots of the key components I used.
+This repository contains all the configurations and documentation for a personal SIEM lab I built to practice threat detection and analysis. It uses a combination of Splunk Enterprise and Microsoft Sysmon to provide deep visibility into endpoint activity, creating a powerful environment for hunting simulated threats.
 
-## Table of Contents
-1.  [Lab Components](#-lab-components-and-architecture)
-2.  [Step 1: Configure the SIEM Server](#step-1-configuring-the-siem-server)
-3.  [Step 2: Configure the Windows Endpoint](#step-2-configuring-the-windows-endpoint)
-4.  [Step 3: Set up the Attacker Machine (Optional)](#step-3-setting-up-the-attacker-machine-optional)
-5.  [Detection & Analysis Examples](#-detection--analysis-examples)
-6.  [References](#-references)
-
----
-
-## 📝 Lab Components and Architecture
-
-My lab setup consists of several virtual machines working together. At a high level, logs from a Windows "victim" machine are sent to a Splunk server for analysis. I then use a Kali Linux machine to generate activity to detect.
+This project is documented to serve as a blueprint for anyone looking to build a similar hands-on security lab.
 
 <p align="center">
-  <img src="./assets/mitre-attack.png" alt="MITRE ATT&CK Framework" width="700"/>
-  <br>
-  <em>The goal is to detect techniques mapped to a framework like MITRE ATT&CK.</em>
+  <img src="docs/assets/mitre-attack.png" alt="MITRE ATT&CK Framework" width="700"/>
 </p>
 
----
+## Project Goals
 
-## Step 1: Configuring the SIEM Server
+*   **Hands-On Learning:** To gain practical experience in configuring and managing SIEM tools, endpoint sensors, and log forwarders.
+*   **Detection Engineering:** To research common attacker techniques mapped to the MITRE ATT&CK framework and build high-fidelity detection rules to spot them.
+*   **Showcase of Skills:** To document and demonstrate practical skills in security monitoring, data analysis, and threat hunting.
 
-For my SIEM, I chose to run Splunk Enterprise on a lightweight Ubuntu Server VM.
+## ✨ Features
 
-<p align="center">
-  <img src="./assets/ubuntu-server-cli.png" alt="Ubuntu Server CLI" width="700"/>
-  <br>
-  <em>I used the Ubuntu Server (CLI) for a minimal footprint.</em>
-</p>
-
-1.  **Install Splunk Enterprise**: After setting up the Ubuntu Server, I downloaded and installed Splunk Enterprise from the [official website](https://www.splunk.com/en_us/download/splunk-enterprise.html).
-
-    <p align="center">
-      <img src="./assets/splunk-enterprise.png" alt="Splunk Enterprise Download Page" width="700"/>
-      <br>
-      <em>I selected the Linux (.tgz) package for my installation.</em>
-    </p>
-
-2.  **Enable Receiving Port**: In the Splunk Web UI, I navigated to **Settings > Forwarding and Receiving > Receive data** and enabled port `9997`.
-
-3.  **Create a Dedicated Index**: To keep my Sysmon data separate, I went to **Settings > Indexes > New Index** and created an index named `sysmon`.
+*   **Splunk Enterprise** as the central SIEM platform.
+*   **Microsoft Sysmon** for granular endpoint logging on a Windows VM.
+*   **Community-Driven Sysmon Configuration** from [SwiftOnSecurity](https://github.com/SwiftOnSecurity/sysmon-config) for excellent baseline visibility.
+*   **Ready-to-Use Config Files** for the Splunk Universal Forwarder (`inputs.conf`).
+*   **Example Detection Queries** for spotting suspicious activity like obfuscated PowerShell, malware drops, and more.
 
 ---
 
-## Step 2: Configuring the Windows Endpoint
+## 🚀 Getting Started
 
-This is the "victim" machine that will generate the logs. I used a standard Windows 10 VM.
+I have written a complete, illustrated step-by-step guide that walks through the entire lab setup process, from installing the VMs to writing the detection rules.
 
-1.  **Download and Install Sysmon**: I obtained the Sysmon tool from the official [Microsoft Sysinternals page](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon).
-
-    <p align="center">
-      <img src="./assets/sysmon.png" alt="Sysmon Information Page" width="700"/>
-      <br>
-      <em>Sysmon is a powerful tool for endpoint visibility.</em>
-    </p>
-
-2.  **Obtain a Sysmon Configuration File**: I used the popular [SwiftOnSecurity Sysmon Config](https://github.com/SwiftOnSecurity/sysmon-config) to get a comprehensive set of rules.
-
-    <p align="center">
-      <img src="./assets/sysmon-configuration-file.png" alt="Sysmon XML Configuration File" width="700"/>
-      <br>
-      <em>An example snippet of the XML configuration that defines what Sysmon logs.</em>
-    </p>
-
-3.  **Install Sysmon**: In an Administrator PowerShell, I ran `.\Sysmon64.exe -accepteula -i sysmonconfig-export.xml` to install the service with my chosen configuration.
-
-4.  **Install the Splunk Forwarder**: To send logs to my Splunk server, I installed the [Splunk Universal Forwarder](https://www.splunk.com/en_us/download/universal-forwarder.html).
-
-    <p align="center">
-      <img src="./assets/splunk-universal-forwarder.png" alt="Splunk Universal Forwarder Download Page" width="700"/>
-      <br>
-      <em>I used the Windows 64-bit installer (.msi).</em>
-    </p>
-
-5.  **Configure Log Collection**: I created an `inputs.conf` file in `C:\Program Files\SplunkUniversalForwarder\etc\system\local\` to tell the forwarder to collect the Sysmon logs. The contents of this file are available in the `/configs` directory of this repository.
-
-6.  **Install the Splunk Add-on**: On my Splunk Server, I installed the **Splunk Add-on for Microsoft Sysmon** from Splunkbase. This add-on correctly parses the XML logs into usable fields.
+### **[➡️ View the Full Illustrated Tutorial](./docs/TUTORIAL.md)**
 
 ---
 
-## Step 3: Setting Up the Attacker Machine (Optional)
+## 🎯 Example Detections
 
-To simulate threats, I set up a Kali Linux VM. This allows me to safely generate network traffic and execute payloads against my Windows endpoint.
+Here is a quick look at the kinds of threats this lab can detect. The full tutorial details how to simulate and catch these.
 
-<p align="center">
-  <img src="./assets/kali-linux-prebuilt-machines.png" alt="Kali Linux Download Page" width="700"/>
-  <br>
-  <em>I used a pre-built Kali Linux image for virtualization software.</em>
-</p>
+| Threat Scenario                       | Splunk Detection Query                                                                                                      |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Obfuscated PowerShell Execution**   | `index=sysmon EventCode=1 Image="*\\powershell.exe" (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*")`                  |
+| **Executable Dropped in Temp Folder** | `index=sysmon EventCode=11 TargetFilename IN ("C:\\Windows\\Temp\\*.exe", "C:\\Users\\*\\AppData\\Local\\Temp\\*.exe")`      |
+| **Suspicious Network Connection**     | `index=sysmon EventCode=3 \| where Image NOT IN ("*\\chrome.exe", "*\\firefox.exe", "*\\msedge.exe")`                           |
 
----
+## 📁 Repository Contents
 
-## 🎯 Detection & Analysis Examples
-
-With the lab fully configured, I was able to simulate attacker activity from the Kali machine (or directly on the Windows VM) and detect it in Splunk.
-
-### Example 1: Detecting Obfuscated PowerShell
-
-*   **Simulation (on Windows VM)**:
-    ```powershell
-    powershell.exe -EncodedCommand "dABoAG8AYQBtAGkA"
-    ```
-*   **Detection (in Splunk)**:
-    ```spl
-    index=sysmon EventCode=1 Image="*\\powershell.exe" (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*")
-    ```
-
-### Example 2: Detecting Executables Dropped in Temp Folders
-
-*   **Simulation (on Windows VM)**:
-    ```powershell
-    New-Item -Path C:\Windows\Temp\malware.exe -ItemType File
-    ```
-*   **Detection (in Splunk)**:
-    ```spl
-    index=sysmon EventCode=11 TargetFilename IN ("C:\\Windows\\Temp\\*.exe", "C:\\Users\\*\\AppData\\Local\\Temp\\*.exe")
-    ```
----
-
-## 📚 References
-
-1.  **Sysmon config & threat hunting w/ Splunk SIEM** | by Fsantos | Medium - [https://medium.com/@fsantos094tmc/sysmon-config-threat-hunting-w-splunk-siem-fc650b2a658f](https://medium.com/@fsantos094tmc/sysmon-config-threat-hunting-w-splunk-siem-fc650b2a658f)
-2.  **Peeping Through Windows (Logs): Using Sysmon & Event Codes for Threat Hunting** | Splunk - [https://www.splunk.com/en_us/blog/security/threat-hunting-sysmon-event-codes.html](https://www.splunk.com/en_us/blog/security/threat-hunting-sysmon-event-codes.html)
-3.  **Sysmon Event ID 1 - Process creation** - Ultimate Windows Security - [https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90001](https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90001)
-4.  **[CyberSec] Sysmon On-Demand for Enhanced Visibility During Incident Investigation** | by Pietro Romano / SecBeret - [https://medium.com/@tribal.secberet/sysmon-on-demand-for-enhanced-visibility-during-incident-investigation-1c398ca5033b](https://medium.com/@tribal.secberet/sysmon-on-demand-for-enhanced-visibility-during-incident-investigation-1c398ca5033b)
-5.  **Sysmon - Sysinternals** | Microsoft Learn - [https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)
+*   **/docs/**: Contains the full step-by-step tutorial and all image assets.
+*   **/configs/**: Contains the configuration files needed for the Splunk Universal Forwarder.
+*   `README.md`: This file, providing a high-level overview of the project.
