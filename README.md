@@ -5,7 +5,7 @@ This repository contains all the configurations and documentation for a personal
 This project is documented to serve as a blueprint for anyone looking to build a similar hands-on security lab.
 
 <p align="center">
-  <img src="docs/assets/mitre-attack.png" alt="MITRE ATT&CK Framework" width="700"/>
+  <img src="docs/assets/network-diagram.png" alt="Network Diagram" width="700"/>
 </p>
 
 ## Project Goals
