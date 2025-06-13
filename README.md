@@ -5,13 +5,13 @@ This repository contains all the configurations and documentation for a personal
 This project is documented to serve as a blueprint for anyone looking to build a similar hands-on security lab.
 
 <p align="center">
-  <img src="docs/assets/lab-architecture.png" alt="Lab Architecture Diagram" width="700"/>
+  <img src="docs/assets/mitre-attack.png" alt="MITRE ATT&CK Framework" width="700"/>
 </p>
 
 ## Project Goals
 
 *   **Hands-On Learning:** To gain practical experience in configuring and managing SIEM tools, endpoint sensors, and log forwarders.
-*   **Detection Engineering:** To research common attacker techniques and build high-fidelity detection rules to spot them.
+*   **Detection Engineering:** To research common attacker techniques mapped to the MITRE ATT&CK framework and build high-fidelity detection rules to spot them.
 *   **Showcase of Skills:** To document and demonstrate practical skills in security monitoring, data analysis, and threat hunting.
 
 ## ✨ Features
@@ -26,9 +26,9 @@ This project is documented to serve as a blueprint for anyone looking to build a
 
 ## 🚀 Getting Started
 
-I have written a complete, step-by-step guide that walks through the entire lab setup process, from installing the VMs to writing the detection rules.
+I have written a complete, illustrated step-by-step guide that walks through the entire lab setup process, from installing the VMs to writing the detection rules.
 
-### **[➡️ View the Full Step-by-Step Tutorial](./docs/TUTORIAL.md)**
+### **[➡️ View the Full Illustrated Tutorial](./docs/TUTORIAL.md)**
 
 ---
 
