@@ -1,104 +1,100 @@
-# My Splunk + Sysmon SIEM Lab: Illustrated Step-by-Step Guide
+# My Splunk + Sysmon SIEM Lab: Full Step-by-Step Guide
 
-This document details the complete process I followed to build my SIEM detection lab, with screenshots of the key components I used.
+This document details the complete process I followed to build my SIEM detection lab.
 
 ## Table of Contents
-1.  [Lab Components](#-lab-components-and-architecture)
-2.  [Step 1: Configure the SIEM Server](#step-1-configuring-the-siem-server)
-3.  [Step 2: Configure the Windows Endpoint](#step-2-configuring-the-windows-endpoint)
-4.  [Step 3: Set up the Attacker Machine (Optional)](#step-3-setting-up-the-attacker-machine-optional)
-5.  [Detection & Analysis Examples](#-detection--analysis-examples)
-6.  [References](#-references)
+1.  [Lab Architecture](#my-lab-architecture-and-components)
+2.  [Step 1: Configure the Splunk Server](#step-1-configuring-the-splunk-server)
+3.  [Step 2: Configure the Windows Endpoint](#step-2-configuring-the-windows-endpoint-sysmon)
+4.  [Step 3: Configure the Splunk Forwarder](#step-3-configuring-the-splunk-universal-forwarder)
+5.  [Step 4: Install the Splunk Add-on](#step-4-installing-the-splunk-add-on-for-sysmon)
+6.  [Detection & Analysis Examples](#-detection--analysis-examples)
+7.  [References](#-references)
 
 ---
 
-## 📝 Lab Components and Architecture
+## My Lab Architecture and Components
 
-My lab setup consists of several virtual machines working together. At a high level, logs from a Windows "victim" machine are sent to a Splunk server for analysis. I then use a Kali Linux machine to generate activity to detect.
+My lab setup consists of three main components working together:
+
+*   **Splunk Server**: A system running Splunk Enterprise (a free license is sufficient) that acts as my SIEM. It serves as both the indexer (receiving logs) and the search head (for analysis). I configured Splunk to listen for forwarded data on TCP port 9997.
+*   **Windows Endpoint (Sysmon Host)**: A Windows 10/11 virtual machine that simulates a workstation in an enterprise environment. On this machine, I installed Microsoft Sysmon and the Splunk Universal Forwarder.
+*   **Network Configuration**: The Splunk Server and Windows VM are on a private network (e.g., a host-only or NAT network in my hypervisor) where the Windows VM can reach the Splunk Server over port 9997.
 
 <p align="center">
-  <img src="./assets/mitre-attack.png" alt="MITRE ATT&CK Framework" width="700"/>
-  <br>
-  <em>The goal is to detect techniques mapped to a framework like MITRE ATT&CK.</em>
+  <img src="./assets/lab-architecture.png" alt="Lab Architecture Diagram" width="700"/>
 </p>
 
 ---
 
-## Step 1: Configuring the SIEM Server
+## Step 1: Configuring the Splunk Server
 
-For my SIEM, I chose to run Splunk Enterprise on a lightweight Ubuntu Server VM.
+1.  **Install Splunk Enterprise**: I downloaded and installed Splunk Enterprise from the [official website](https://www.splunk.com/en_us/download/splunk-enterprise.html). The free license allows for up to 500 MB of data ingestion per day, which is more than enough for this lab.
+2.  **Enable Receiving Port**: I configured Splunk to receive data from the forwarder.
+    *   In the Splunk Web UI, I navigated to **Settings > Forwarding and Receiving**.
+    *   Under "Receive data," I clicked **Add new**.
+    *   I entered `9997` as the port and clicked Save. This opened the port to listen for incoming logs.
+3.  **Create a Dedicated Index (Recommended)**: To keep my Sysmon data separate, I created a new index.
+    *   I navigated to **Settings > Indexes**.
+    *   I clicked **New Index**.
+    *   I named the index `sysmon` and left the other settings as default, then clicked Save.
 
-<p align="center">
-  <img src="./assets/ubuntu-server-cli.png" alt="Ubuntu Server CLI" width="700"/>
-  <br>
-  <em>I used the Ubuntu Server (CLI) for a minimal footprint.</em>
-</p>
+## Step 2: Configuring the Windows Endpoint (Sysmon)
 
-1.  **Install Splunk Enterprise**: After setting up the Ubuntu Server, I downloaded and installed Splunk Enterprise from the [official website](https://www.splunk.com/en_us/download/splunk-enterprise.html).
-
-    <p align="center">
-      <img src="./assets/splunk-enterprise.png" alt="Splunk Enterprise Download Page" width="700"/>
-      <br>
-      <em>I selected the Linux (.tgz) package for my installation.</em>
-    </p>
-
-2.  **Enable Receiving Port**: In the Splunk Web UI, I navigated to **Settings > Forwarding and Receiving > Receive data** and enabled port `9997`.
-
-3.  **Create a Dedicated Index**: To keep my Sysmon data separate, I went to **Settings > Indexes > New Index** and created an index named `sysmon`.
-
----
-
-## Step 2: Configuring the Windows Endpoint
-
-This is the "victim" machine that will generate the logs. I used a standard Windows 10 VM.
-
-1.  **Download and Install Sysmon**: I obtained the Sysmon tool from the official [Microsoft Sysinternals page](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon).
+1.  **Download Sysmon**: I obtained the Sysmon tool from the official [Microsoft Sysinternals page](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon).
+2.  **Obtain a Sysmon Configuration File**: Sysmon's power comes from its configuration. Instead of starting from scratch, I used a robust community-provided configuration.
+    *   **My Choice**: [SwiftOnSecurity's Sysmon Config](https://github.com/SwiftOnSecurity/sysmon-config). This config is widely used and provides excellent coverage of MITRE ATT&CK techniques while filtering out common noise.
+    *   I downloaded the `sysmonconfig-export.xml` file and placed it on my Windows VM.
+3.  **Install Sysmon**: I opened an **Administrator** command prompt or PowerShell and ran the following command to install Sysmon as a service using my chosen configuration file:
+    ```powershell
+    # Ensure you are in the same directory as Sysmon64.exe and the config file
+    .\Sysmon64.exe -accepteula -i sysmonconfig-export.xml
+    ```
+4.  **Verify Sysmon is Running**: I checked that Sysmon was logging events correctly.
+    *   I opened **Event Viewer**.
+    *   I navigated to **Applications and Services Logs > Microsoft > Windows > Sysmon > Operational**.
+    *   I could see events being logged. The image below shows an example of Sysmon Event ID 1 (Process Create), confirming that Sysmon was recording events on the endpoint.
 
     <p align="center">
-      <img src="./assets/sysmon.png" alt="Sysmon Information Page" width="700"/>
-      <br>
-      <em>Sysmon is a powerful tool for endpoint visibility.</em>
+      <img src="./assets/event-viewer-sysmon.png" alt="Sysmon Event in Event Viewer" width="700"/>
     </p>
 
-2.  **Obtain a Sysmon Configuration File**: I used the popular [SwiftOnSecurity Sysmon Config](https://github.com/SwiftOnSecurity/sysmon-config) to get a comprehensive set of rules.
+## Step 3: Configuring the Splunk Universal Forwarder
 
-    <p align="center">
-      <img src="./assets/sysmon-configuration-file.png" alt="Sysmon XML Configuration File" width="700"/>
-      <br>
-      <em>An example snippet of the XML configuration that defines what Sysmon logs.</em>
-    </p>
+1.  **Download and Install the Forwarder**: I got the [Splunk Universal Forwarder](https://www.splunk.com/en_us/download/universal-forwarder.html) installer (`.msi`) and ran it on my Windows VM.
+    *   During the setup wizard, when prompted for the **Receiving Indexer**, I entered the IP address and port of my Splunk server (e.g., `192.168.1.10:9997`). This automatically configured the `outputs.conf` file.
+2.  **Configure Log Collection**: After installation, the forwarder must be told *which* logs to collect. This is done by creating an `inputs.conf` file.
+    *   I created a new file named `inputs.conf` in the following directory:
+        `C:\Program Files\SplunkUniversalForwarder\etc\system\local\`
+    *   The contents of this file are available in the `/configs` directory of the main repository.
+3.  **Start/Restart the Forwarder**: I opened the `Services` app on Windows, found the `SplunkForwarder` service, and restarted it to apply the new configuration.
 
-3.  **Install Sysmon**: In an Administrator PowerShell, I ran `.\Sysmon64.exe -accepteula -i sysmonconfig-export.xml` to install the service with my chosen configuration.
+## Step 4: Installing the Splunk Add-on for Sysmon
 
-4.  **Install the Splunk Forwarder**: To send logs to my Splunk server, I installed the [Splunk Universal Forwarder](https://www.splunk.com/en_us/download/universal-forwarder.html).
+Raw Sysmon events are in XML format. To make them useful, Splunk needs to parse them into fields. The **Splunk Add-on for Microsoft Sysmon** does exactly this.
 
-    <p align="center">
-      <img src="./assets/splunk-universal-forwarder.png" alt="Splunk Universal Forwarder Download Page" width="700"/>
-      <br>
-      <em>I used the Windows 64-bit installer (.msi).</em>
-    </p>
-
-5.  **Configure Log Collection**: I created an `inputs.conf` file in `C:\Program Files\SplunkUniversalForwarder\etc\system\local\` to tell the forwarder to collect the Sysmon logs. The contents of this file are available in the `/configs` directory of this repository.
-
-6.  **Install the Splunk Add-on**: On my Splunk Server, I installed the **Splunk Add-on for Microsoft Sysmon** from Splunkbase. This add-on correctly parses the XML logs into usable fields.
-
----
-
-## Step 3: Setting Up the Attacker Machine (Optional)
-
-To simulate threats, I set up a Kali Linux VM. This allows me to safely generate network traffic and execute payloads against my Windows endpoint.
-
-<p align="center">
-  <img src="./assets/kali-linux-prebuilt-machines.png" alt="Kali Linux Download Page" width="700"/>
-  <br>
-  <em>I used a pre-built Kali Linux image for virtualization software.</em>
-</p>
-
----
+1.  **Download the Add-on**: I grabbed the [Splunk Add-on for Microsoft Sysmon](https://splunkbase.splunk.com/app/1914) (ID 1914) from Splunkbase.
+2.  **Install on the Splunk Server**:
+    *   In my Splunk Web UI, I went to **Apps > Manage Apps**.
+    *   I clicked **Install app from file**, chose the `.tgz` file I had downloaded, and uploaded it.
+    *   I restarted Splunk when prompted.
 
 ## 🎯 Detection & Analysis Examples
 
-With the lab fully configured, I was able to simulate attacker activity from the Kali machine (or directly on the Windows VM) and detect it in Splunk.
+With the lab fully configured, I was able to simulate attacker activity on the Windows VM and detect it in Splunk.
+
+### Verifying Data in Splunk
+
+I ran this search to see my Sysmon data flowing into the `sysmon` index:
+
+```spl
+index=sysmon sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+```
+The search returned events, and on the left side, I saw a list of "Interesting Fields" like `EventCode`, `Image`, and `User`, which confirmed the Add-on was working correctly.
+
+<p align="center">
+  <img src="./assets/splunk-search-interface.png" alt="Splunk Search Interface" width="700"/>
+</p>
 
 ### Example 1: Detecting Obfuscated PowerShell
 
@@ -111,7 +107,18 @@ With the lab fully configured, I was able to simulate attacker activity from the
     index=sysmon EventCode=1 Image="*\\powershell.exe" (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*")
     ```
 
-### Example 2: Detecting Executables Dropped in Temp Folders
+### Example 2: Detecting Batch Scripts in Suspicious Locations
+
+*   **Simulation (on Windows VM)**:
+    *   I created a file named `malicious.bat` in `C:\Users\Public\`.
+    *   I added a simple command like `net user` to it and ran it.
+*   **Detection (in Splunk)**:
+    ```spl
+    index=sysmon EventCode=1 Image="*\\cmd.exe" CommandLine="*.bat*"
+    | where NOT (CommandLine LIKE "C:\\Windows\\%" OR CommandLine LIKE "C:\\Program Files\\%")
+    ```
+
+### Example 3: Detecting Executables Dropped in Temp Folders
 
 *   **Simulation (on Windows VM)**:
     ```powershell
@@ -120,6 +127,18 @@ With the lab fully configured, I was able to simulate attacker activity from the
 *   **Detection (in Splunk)**:
     ```spl
     index=sysmon EventCode=11 TargetFilename IN ("C:\\Windows\\Temp\\*.exe", "C:\\Users\\*\\AppData\\Local\\Temp\\*.exe")
+    ```
+
+### Example 4: Detecting Suspicious Network Connections
+
+*   **Simulation (on Windows VM)**:
+    ```powershell
+    Invoke-WebRequest -Uri "http://<some-ip>"
+    ```
+*   **Detection (in Splunk)**:
+    ```spl
+    index=sysmon EventCode=3
+    | where Image NOT IN ("*\\chrome.exe", "*\\firefox.exe", "*\\msedge.exe")
     ```
 ---
 
@@ -130,3 +149,9 @@ With the lab fully configured, I was able to simulate attacker activity from the
 3.  **Sysmon Event ID 1 - Process creation** - Ultimate Windows Security - [https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90001](https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/event.aspx?eventid=90001)
 4.  **[CyberSec] Sysmon On-Demand for Enhanced Visibility During Incident Investigation** | by Pietro Romano / SecBeret - [https://medium.com/@tribal.secberet/sysmon-on-demand-for-enhanced-visibility-during-incident-investigation-1c398ca5033b](https://medium.com/@tribal.secberet/sysmon-on-demand-for-enhanced-visibility-during-incident-investigation-1c398ca5033b)
 5.  **Sysmon - Sysinternals** | Microsoft Learn - [https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)
+6.  **Explore the basics of Sysmon logs** | ManageEngine EventLog Analyzer - [https://www.manageengine.com/products/eventlog/logging-guide/what-is-sysmon.html](https://www.manageengine.com/products/eventlog/logging-guide/what-is-sysmon.html)
+7.  **A Sysmon Event ID Breakdown - Updated to Include 29!!** - Black Hills Information Security, Inc. - [https://www.blackhillsinfosec.com/a-sysmon-event-id-breakdown/](https://www.blackhillsinfosec.com/a-sysmon-event-id-breakdown/)
+8.  **Introduction - Splunk Add-on for Sysmon** - [https://splunk.github.io/splunk-add-on-for-microsoft-sysmon/](https://splunk.github.io/splunk-add-on-for-microsoft-sysmon/)
+9.  **Detecting Lateral Movement Using Sysmon and Splunk** | by David French | threatpunter | Medium - [https://medium.com/threatpunter/detecting-lateral-movement-using-sysmon-and-splunk-318d3be141bc](https://medium.com/threatpunter/detecting-lateral-movement-using-sysmon-and-splunk-318d3be141bc)
+10. **Install the Splunk Add-on for Sysmon** - [https://docs.splunk.com/Documentation/AddOns/released/MSSysmon/Install](https://docs.splunk.com/Documentation/AddOns/released/MSSysmon/Install)
+11. **Leaman Brown - Rebadging Specialist - Concero** - LinkedIn - [https://www.linkedin.com/in/leamanbrown](https://www.linkedin.com/in/leamanbrown)
