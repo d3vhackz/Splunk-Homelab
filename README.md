@@ -1,49 +1,51 @@
-# My Splunk + Sysmon SIEM Detection Lab
+# My Splunk + Sysmon Detection Lab
 
-This repository contains all the configurations and documentation for a personal SIEM lab I built to practice threat detection and analysis. It uses a combination of Splunk Enterprise and Microsoft Sysmon to provide deep visibility into endpoint activity, creating a powerful environment for hunting simulated threats.
+This repository contains all the configurations and documentation for a comprehensive security information and event management (SIEM) lab I built. The environment is centered around a full Microsoft Active Directory domain, enabling the simulation and detection of realistic adversary techniques.
 
-This project is documented to serve as a blueprint for anyone looking to build a similar hands-on security lab.
+This project is documented to serve as a portfolio piece and a detailed blueprint for anyone looking to build their own hands-on detection lab.
 
 <p align="center">
-  <img src="docs/assets/network-diagram.png" alt="Network Diagram" width="700"/>
+  <img src="docs/assets/lab-architecture.png" alt="Lab Architecture Diagram" width="800"/>
 </p>
 
 ## Project Goals
 
-*   **Hands-On Learning:** To gain practical experience in configuring and managing SIEM tools, endpoint sensors, and log forwarders.
-*   **Detection Engineering:** To research common attacker techniques mapped to the MITRE ATT&CK framework and build high-fidelity detection rules to spot them.
-*   **Showcase of Skills:** To document and demonstrate practical skills in security monitoring, data analysis, and threat hunting.
+*   **Enterprise Environment Simulation:** To build and configure a multi-server environment with Active Directory, replicating a typical corporate network.
+*   **End-to-End Log Collection:** To instrument Windows endpoints with Sysmon and configure Splunk forwarders to centralize security, application, and system logs in Splunk.
+*   **Threat Simulation:** To use industry-standard frameworks like **Atomic Red Team** and adversary tools like `crowbar` to execute controlled attacks mapped to the **MITRE ATT&CK** framework.
+*   **Detection Engineering:** To analyze the generated logs, identify indicators of compromise (IOCs), and build high-fidelity Splunk queries to detect malicious activity.
 
-## ✨ Features
+## ✨ Features & Technologies Used
 
-*   **Splunk Enterprise** as the central SIEM platform.
-*   **Microsoft Sysmon** for granular endpoint logging on a Windows VM.
-*   **Community-Driven Sysmon Configuration** from [SwiftOnSecurity](https://github.com/SwiftOnSecurity/sysmon-config) for excellent baseline visibility.
-*   **Ready-to-Use Config Files** for the Splunk Universal Forwarder (`inputs.conf`).
-*   **Example Detection Queries** for spotting suspicious activity like obfuscated PowerShell, malware drops, and more.
-
----
-
-## 🚀 Getting Started
-
-I have written a complete, illustrated step-by-step guide that walks through the entire lab setup process, from installing the VMs to writing the detection rules.
-
-### **[➡️ View the Full Illustrated Tutorial](./docs/TUTORIAL.md)**
+*   **SIEM:** Splunk Enterprise 9.2
+*   **Directory Service:** Microsoft Active Directory
+*   **Endpoint Logging:** Microsoft Sysmon with a modular configuration
+*   **Log Forwarding:** Splunk Universal Forwarder
+*   **Attack Simulation:** Atomic Red Team, Crowbar (RDP Brute-Forcer)
+*   **Virtualization:** Oracle VirtualBox
+*   **Operating Systems:** Windows Server 2022, Windows 10, Ubuntu Server, Kali Linux
 
 ---
 
-## 🎯 Example Detections
+## 🚀 Full Illustrated Guide
 
-Here is a quick look at the kinds of threats this lab can detect. The full tutorial details how to simulate and catch these.
+I have written a complete, illustrated step-by-step guide that walks through the entire lab creation process—from setting up the virtual machines and Active Directory to executing and detecting the final attacks.
 
-| Threat Scenario                       | Splunk Detection Query                                                                                                      |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Obfuscated PowerShell Execution**   | `index=sysmon EventCode=1 Image="*\\powershell.exe" (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*")`                  |
-| **Executable Dropped in Temp Folder** | `index=sysmon EventCode=11 TargetFilename IN ("C:\\Windows\\Temp\\*.exe", "C:\\Users\\*\\AppData\\Local\\Temp\\*.exe")`      |
-| **Suspicious Network Connection**     | `index=sysmon EventCode=3 \| where Image NOT IN ("*\\chrome.exe", "*\\firefox.exe", "*\\msedge.exe")`                           |
+### **[➡️ View the Full Tutorial Here](./docs/TUTORIAL.md)**
+
+---
+
+## 🎯 Example Detections Showcase
+
+Here is a quick look at some of the threats this lab can detect. The full tutorial details how to perform the attacks and build the detection logic.
+
+| MITRE ATT&CK Tactic | Technique (ID)                                | Detection Logic in Splunk                                                                |
+| ------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Persistence**     | Create Account: Local Account (T1136.001)     | `index=endpoint EventCode=4720`                                                          |
+| **Credential Access** | Brute Force: Password Spraying (T1110.003)    | `index=endpoint EventCode=4625` with a high count of failures from a single source IP    |
 
 ## 📁 Repository Contents
 
-*   **/docs/**: Contains the full step-by-step tutorial and all image assets.
+*   **/docs/**: Contains the full, illustrated step-by-step tutorial and all image assets.
 *   **/configs/**: Contains the configuration files needed for the Splunk Universal Forwarder.
 *   `README.md`: This file, providing a high-level overview of the project.
